@@ -1,7 +1,7 @@
 {
-  "name": "mr-viewer",
-  "displayName": "MR Viewer",
-  "description": "Merge request viewer",
+  "name": "mr-review",
+  "displayName": "MR Review",
+  "description": "Merge request review",
   "version": "0.2.0",
   "license": "MIT",
   "engines": {
