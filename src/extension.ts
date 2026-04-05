@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { BranchCompareViewProvider } from './branchCompareView';
-import { ChangedFilesProvider, ChangedFileItem } from './changedFilesProvider';
+import { ChangedFilesProvider, ChangedFileItem, TreeNode } from './changedFilesProvider';
 import { DiffContentProvider } from './diffContentProvider';
 import { GitService } from './gitService';
 
@@ -16,8 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const changedFilesProvider = new ChangedFilesProvider(gitService);
   const treeView = vscode.window.createTreeView('mrReview.changedFiles', {
-    treeDataProvider: changedFilesProvider,
-    showCollapseAll: false
+    treeDataProvider: changedFilesProvider as vscode.TreeDataProvider<TreeNode>,
+    showCollapseAll: true
   });
   context.subscriptions.push(treeView);
 

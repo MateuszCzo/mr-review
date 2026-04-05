@@ -2,6 +2,69 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { DiffFile, GitService } from './gitService';
 
+interface DirNode {
+  children: Map<string, DirNode>;
+  files: ChangedFileItem[];
+}
+
+function buildTree(files: DiffFile[], workspaceRoot: string): DirNode {
+  const root: DirNode = { children: new Map(), files: [] };
+
+  for (const f of files) {
+    const parts = path.dirname(f.path).split('/');
+    const isRoot = parts.length === 1 && parts[0] === '.';
+
+    let node = root;
+
+    if (!isRoot) {
+      for (const part of parts) {
+        if (!node.children.has(part)) {
+          node.children.set(part, { children: new Map(), files: [] });
+        }
+        node = node.children.get(part)!;
+      }
+    }
+
+    node.files.push(new ChangedFileItem(f, workspaceRoot));
+  }
+
+  return root;
+}
+
+function collapseTree(node: DirNode, name: string): FolderItem {
+  let label = name;
+  let current = node;
+
+  while (current.children.size === 1 && current.files.length === 0) {
+    const [childName, childNode] = [...current.children.entries()][0];
+    label += '/' + childName;
+    current = childNode;
+  }
+
+  const children: TreeNode[] = [
+    ...current.files,
+    ...[...current.children.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([childName, childNode]) => collapseTree(childNode, childName))
+  ];
+
+  return new FolderItem(label, children);
+}
+
+export type TreeNode = FolderItem | ChangedFileItem;
+
+export class FolderItem extends vscode.TreeItem {
+  constructor(
+    public readonly folderPath: string,
+    public readonly children: TreeNode[]
+  ) {
+    super(folderPath, vscode.TreeItemCollapsibleState.Expanded);
+    this.tooltip = folderPath;
+    this.iconPath = new vscode.ThemeIcon('folder');
+    this.contextValue = 'folder';
+  }
+}
+
 export class ChangedFileItem extends vscode.TreeItem {
   constructor(
     public readonly diffFile: DiffFile,
@@ -41,7 +104,7 @@ export class ChangedFileItem extends vscode.TreeItem {
   }
 }
 
-export class ChangedFilesProvider implements vscode.TreeDataProvider<ChangedFileItem> {
+export class ChangedFilesProvider implements vscode.TreeDataProvider<TreeNode> {
   private _onDidChangeTreeData = new vscode.EventEmitter<ChangedFileItem | undefined | null | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -69,24 +132,24 @@ export class ChangedFilesProvider implements vscode.TreeDataProvider<ChangedFile
     }
   }
 
-  getTreeItem(element: ChangedFileItem): vscode.TreeItem {
+  getTreeItem(element: TreeNode): vscode.TreeItem {
     return element;
   }
 
-  getChildren(_element?: ChangedFileItem): ChangedFileItem[] {
+  getChildren(element?: TreeNode): TreeNode[] {
     if (!this.workspaceRoot) return [];
 
-    if (this.files.length === 0) {
-      return [];
+    if (element instanceof FolderItem) {
+      return element.children;
     }
 
-    const sorted = [...this.files].sort((a, b) => {
-      const dirA = a.path.split('/').slice(0, -1).join('/');
-      const dirB = b.path.split('/').slice(0, -1).join('/');
-      if (dirA !== dirB) return dirA.localeCompare(dirB);
-      return a.path.localeCompare(b.path);
-    });
+    const root = buildTree(this.files, this.workspaceRoot);
 
-    return sorted.map(f => new ChangedFileItem(f, this.workspaceRoot));
+    return [
+      ...root.files,
+      ...[...root.children.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([name, node]) => collapseTree(node, name))
+    ];
   }
 }

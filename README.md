@@ -5,7 +5,7 @@ A VS Code extension for reviewing merge requests and comparing branches directly
 ## Features
 
 - 🔀 **Compare any branch** — type or pick from an autocomplete list of local and remote branches
-- 📄 **Changed files tree** — grouped by directory, with status badges: `A` added · `M` modified · `D` deleted · `R` renamed
+- 📁 **Nested folder tree** — changed files displayed as a collapsible directory tree; single-child folders are automatically collapsed into one node (e.g. `src/AppBundle/AI/Model`)
 - 🔴🟢 **Native VS Code diff** — red lines removed, green lines added, with character-level column highlighting out of the box
 - ✏️ **Fully editable right side** — the current file is a real file on disk, so IntelliSense, Go to Definition, Find References, and all other extensions work normally
 
@@ -28,7 +28,7 @@ A VS Code extension for reviewing merge requests and comparing branches directly
 npm install -g @vscode/vsce
 npm run compile
 vsce package --no-dependencies
-code --install-extension mr-review-0.1.0.vsix
+code --install-extension mr-review-*.vsix
 ```
 
 Or in VS Code: `Ctrl+Shift+P` → **Extensions: Install from VSIX...** → select the file.

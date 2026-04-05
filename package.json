@@ -2,7 +2,7 @@
   "name": "mr-viewer",
   "displayName": "MR Viewer",
   "description": "Merge request viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "engines": {
     "vscode": "^1.110.0"

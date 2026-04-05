@@ -1,5 +1,14 @@
 # Change Log
 
+## [Unreleased]
+
+## [0.2.0] - 2026-04-05
+
+### Changed
+
+- Changed files panel now displays a nested folder tree instead of a flat list — folders collapse and expand individually
+- Folders with a single child are automatically collapsed into one node (e.g. `src/AppBundle/AI/Model` instead of four separate levels)
+
 ## [0.1.0] - 2026-03-28
 
 ### Added
